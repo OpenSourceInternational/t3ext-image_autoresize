@@ -163,8 +163,7 @@ class ConfigurationController
     {
         $this->formResultCompiler = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Form\FormResultCompiler::class);
 
-        $wizard = $this->formResultCompiler->JStop();
-        $wizard .= $this->buildForm($row);
+        $wizard = $this->buildForm($row);
         $wizard .= $this->formResultCompiler->printNeededJSFunctions();
 
         $this->content .= $wizard;
@@ -284,7 +283,7 @@ HTML;
 
         // SAVE button:
         $saveButton = $buttonBar->makeInputButton()
-            ->setTitle($this->languageService->sL('LLL:EXT:lang/locallang_core.xlf:rm.saveDoc', true))
+            ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.saveDoc', true))
             ->setName('_savedok')
             ->setValue('1')
             ->setIcon($this->moduleTemplate->getIconFactory()->getIcon(
@@ -298,7 +297,7 @@ HTML;
             ->setName('_saveandclosedok')
             ->setClasses('t3js-editform-submitButton')
             ->setValue('1')
-            ->setTitle($this->languageService->sL('LLL:EXT:lang/locallang_core.xlf:rm.saveCloseDoc', true))
+            ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.saveCloseDoc', true))
             ->setIcon($this->moduleTemplate->getIconFactory()->getIcon(
                 'actions-document-save-close',
                 \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL
@@ -311,7 +310,7 @@ HTML;
         $closeButton = $buttonBar->makeLinkButton()
             ->setHref('#')
             ->setClasses('t3js-editform-close')
-            ->setTitle($this->languageService->sL('LLL:EXT:lang/locallang_core.xlf:rm.closeDoc', true))
+            ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.closeDoc', true))
             ->setIcon($this->moduleTemplate->getIconFactory()->getIcon(
                 'actions-view-go-back',
                 \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL

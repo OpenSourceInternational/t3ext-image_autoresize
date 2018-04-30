@@ -77,19 +77,14 @@ class FAL
             $basePath = GeneralUtility::getFileAbsFileName($basePath);
             $identifier = substr($fileName, strlen($basePath) - 1);
 
-            $row = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
-                'uid',
-                'sys_file',
-                'storage=' . intval($targetFolder->getStorage()->getUid()) .
-                ' AND identifier=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($identifier, 'sys_file') .
-                \TYPO3\CMS\Backend\Utility\BackendUtility::deleteClause('sys_file')
+            $fileRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Resource\FileRepository::class);
+            $query = $fileRepository->createQuery();
+            $constraints['storage'] = $query->equals('storage', intval($targetFolder->getStorage()->getUid()));
+            $constraints['storage'] = $query->equals('identifier', $identifier);
+            $query->matching(
+                $query->logicalAnd($constraints)
             );
-
-            if (!empty($row['uid'])) {
-                /** @var \TYPO3\CMS\Core\Resource\FileRepository $fileRepository */
-                $fileRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Resource\FileRepository::class);
-                $file = $fileRepository->findByUid($row['uid']);
-            }
+            $file = $query->execute()->getFirst();
         }
 
         return $file;
