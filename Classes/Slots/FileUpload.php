@@ -64,7 +64,7 @@ class FileUpload
         if (static::$imageResizer === null) {
             static::$imageResizer = GeneralUtility::makeInstance(ImageResizer::class);
 
-            $configuration = $GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['image_autoresize_ff'];
+            $configuration = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['image_autoresize_ff'];
             if (!$configuration) {
                 $this->notify(
                     $GLOBALS['LANG']->sL('LLL:EXT:image_autoresize/Resources/Private/Language/locallang.xml:message.emptyConfiguration'),

@@ -85,7 +85,7 @@ class ConfigurationController
         $this->moduleTemplate = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Template\ModuleTemplate::class);
         $this->languageService = $GLOBALS['LANG'];
 
-        $config = $GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf'][$this->expertKey];
+        $config =  $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS'][$this->expertKey];
         $this->config = $config ? unserialize($config) : $this->getDefaultConfiguration();
         $this->config['conversion_mapping'] = implode(LF, explode(',', $this->config['conversion_mapping']));
     }
@@ -107,13 +107,10 @@ class ConfigurationController
 
         $this->moduleTemplate->setForm($formTag);
 
-        $this->content .= sprintf('<h3>%s</h3>', $this->languageService->getLL('title', true));
+        $this->content .= sprintf('<h3>%s</h3>', $this->languageService->getLL('title'));
         $this->addStatisticsAndSocialLink();
 
         $row = $this->config;
-        if (version_compare(TYPO3_version, '7.6.17', '<')) {
-            $this->fixRecordForFormEngine($row, ['file_types', 'usergroup']);
-        }
         $this->moduleContent($row);
 
         // Compile document
@@ -257,14 +254,12 @@ class ConfigurationController
 			<input type="hidden" name="_serialNumber" value="' . md5(microtime()) . '" />
 			<input type="hidden" name="_scrollPosition" value="" />';
 
-        if (version_compare(TYPO3_version, '8.6', '>=')) {
             $overriddenAjaxUrl = GeneralUtility::quoteJSvalue(BackendUtility::getModuleUrl('TxImageAutoresize::record_flex_container_add'));
             $formContent .= <<<HTML
 <script type="text/javascript">
     TYPO3.settings.ajaxUrls['record_flex_container_add'] = $overriddenAjaxUrl;
 </script>
 HTML;
-        }
 
         return $formContent;
     }
@@ -283,7 +278,7 @@ HTML;
 
         // SAVE button:
         $saveButton = $buttonBar->makeInputButton()
-            ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.saveDoc', true))
+            ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.saveDoc'))
             ->setName('_savedok')
             ->setValue('1')
             ->setIcon($this->moduleTemplate->getIconFactory()->getIcon(
@@ -297,7 +292,7 @@ HTML;
             ->setName('_saveandclosedok')
             ->setClasses('t3js-editform-submitButton')
             ->setValue('1')
-            ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.saveCloseDoc', true))
+            ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.saveCloseDoc'))
             ->setIcon($this->moduleTemplate->getIconFactory()->getIcon(
                 'actions-document-save-close',
                 \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL
@@ -310,7 +305,7 @@ HTML;
         $closeButton = $buttonBar->makeLinkButton()
             ->setHref('#')
             ->setClasses('t3js-editform-close')
-            ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.closeDoc', true))
+            ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.closeDoc'))
             ->setIcon($this->moduleTemplate->getIconFactory()->getIcon(
                 'actions-view-go-back',
                 \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL
@@ -372,12 +367,10 @@ HTML;
             $inputData_tmp = GeneralUtility::_GP('data');
             $data = $inputData_tmp[$table][$id];
 
-            if (version_compare(TYPO3_version, '8.6', '>=')) {
-                if (count($inputData_tmp[$table]) > 1) {
-                    foreach ($inputData_tmp[$table] as $key => $values) {
-                        if ($key === $id) continue;
-                        ArrayUtility::mergeRecursiveWithOverrule($data, $values);
-                    }
+            if (count($inputData_tmp[$table]) > 1) {
+                foreach ($inputData_tmp[$table] as $key => $values) {
+                    if ($key === $id) continue;
+                    ArrayUtility::mergeRecursiveWithOverrule($data, $values);
                 }
             }
 
@@ -441,7 +434,6 @@ HTML;
     {
         $this->tceforms = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Form\FormEngine::class);
         $this->tceforms->doSaveFieldName = 'doSave';
-        $this->tceforms->localizationMode = '';
         $this->tceforms->palettesCollapsed = 0;
     }
 
@@ -497,7 +489,7 @@ HTML;
             return;
         }
 
-        $resourcesPath = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath($this->extKey) . 'Resources/Public/';
+        $resourcesPath = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath($this->extKey) . 'Resources/Public/';
         $pageRenderer = $this->moduleTemplate->getPageRenderer();
         $pageRenderer->addCssFile($resourcesPath . 'Css/twitter.css');
         $pageRenderer->addJsFile($resourcesPath . 'JavaScript/popup.js');
@@ -516,7 +508,7 @@ HTML;
         $twitterLink = GeneralUtility::quoteJSvalue($twitterLink);
         $flashMessage .= '
             <div class="custom-tweet-button">
-                <a href="#" onclick="popitup(' . $twitterLink . ',\'twitter\')" title="' . $this->languageService->getLL('social.share', true) . '">
+                <a href="#" onclick="popitup(' . $twitterLink . ',\'twitter\')" title="' . $this->languageService->getLL('social.share') . '">
                     <i class="btn-icon"></i>
                     <span class="btn-text">Tweet</span>
                 </a>

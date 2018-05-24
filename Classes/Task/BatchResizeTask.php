@@ -53,7 +53,7 @@ class BatchResizeTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask
      */
     public function execute()
     {
-        $configuration = $GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['image_autoresize_ff'];
+        $configuration = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['image_autoresize_ff'];
         if (!empty($configuration)) {
             $configuration = unserialize($configuration);
         }
@@ -206,25 +206,28 @@ class BatchResizeTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask
      */
     public function syslog($message, $severity = \TYPO3\CMS\Core\Messaging\FlashMessage::OK)
     {
+        $logger = GeneralUtility::makeInstance('TYPO3\CMS\Core\Log\LogManager')->getLogger(__CLASS__);
         switch ($severity) {
             case \TYPO3\CMS\Core\Messaging\FlashMessage::NOTICE:
-                $severity = GeneralUtility::SYSLOG_SEVERITY_NOTICE;
+                $severity = \TYPO3\CMS\Core\Log\LogLevel::NOTICE;
                 break;
             case \TYPO3\CMS\Core\Messaging\FlashMessage::INFO:
-                $severity = GeneralUtility::SYSLOG_SEVERITY_INFO;
+                $severity = \TYPO3\CMS\Core\Log\LogLevel::INFO;
                 break;
             case \TYPO3\CMS\Core\Messaging\FlashMessage::OK:
-                $severity = GeneralUtility::SYSLOG_SEVERITY_INFO;
+                $severity = \TYPO3\CMS\Core\Log\LogLevel::INFO;
                 break;
             case \TYPO3\CMS\Core\Messaging\FlashMessage::WARNING:
-                $severity = GeneralUtility::SYSLOG_SEVERITY_WARNING;
+                $severity = \TYPO3\CMS\Core\Log\LogLevel::WARNING;
                 break;
             case \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR:
-                $severity = GeneralUtility::SYSLOG_SEVERITY_ERROR;
+                $severity = \TYPO3\CMS\Core\Log\LogLevel::ERROR;
                 break;
         }
-
-        GeneralUtility::sysLog($message, 'image_autoresize', $severity);
+        $logger->log(
+            $severity,
+            $message
+        );
     }
 
 }
