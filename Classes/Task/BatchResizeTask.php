@@ -15,6 +15,11 @@
 namespace Causal\ImageAutoresize\Task;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Messaging\FlashMessageService;
+use TYPO3\CMS\Core\Log\LogManager;
+use TYPO3\CMS\Core\Log\LogLevel;
+use TYPO3\CMS\Scheduler\Task\AbstractTask as AbstractTask;
 use Causal\ImageAutoresize\Service\ImageResizer;
 
 /**
@@ -26,7 +31,7 @@ use Causal\ImageAutoresize\Service\ImageResizer;
  * @author      Xavier Perseguers <xavier@causal.ch>
  * @license     http://www.gnu.org/copyleft/gpl.html
  */
-class BatchResizeTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask
+class BatchResizeTask extends AbstractTask
 {
 
     /**
@@ -61,7 +66,7 @@ class BatchResizeTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask
             throw new \RuntimeException('No configuration found', 1384103174);
         }
 
-        $this->imageResizer = GeneralUtility::makeInstance(\Causal\ImageAutoresize\Service\ImageResizer::class);
+        $this->imageResizer = GeneralUtility::makeInstance(ImageResizer::class);
         $this->imageResizer->initializeRulesets($configuration);
 
         if (empty($this->directories)) {
@@ -170,12 +175,13 @@ class BatchResizeTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask
      *                          Default is \TYPO3\CMS\Core\Messaging\FlashMessage::OK.
      * @return void
      * @internal This method is public only to be callable from a callback
+     * @throws \TYPO3\CMS\Core\Exception
      */
-    public function notify($message, $severity = \TYPO3\CMS\Core\Messaging\FlashMessage::OK)
+    public function notify($message, $severity = FlashMessage::OK)
     {
         static $numberOfValidNotifications = 0;
 
-        if ($severity <= \TYPO3\CMS\Core\Messaging\FlashMessage::OK || \TYPO3\CMS\Core\Messaging\FlashMessage::OK) {
+        if ($severity <= FlashMessage::OK || FlashMessage::OK) {
             $numberOfValidNotifications++;
             if ($numberOfValidNotifications > 20) {
                 // Do not show more "ok" messages
@@ -184,14 +190,14 @@ class BatchResizeTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask
         }
 
         $flashMessage = GeneralUtility::makeInstance(
-            \TYPO3\CMS\Core\Messaging\FlashMessage::class,
+            FlashMessage::class,
             $message,
             '',
             $severity,
             true
         );
-        /** @var $flashMessageService \TYPO3\CMS\Core\Messaging\FlashMessageService */
-        $flashMessageService = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
+        /** @var $flashMessageService FlashMessageService */
+        $flashMessageService = GeneralUtility::makeInstance(FlashMessageService::class);
         /** @var $defaultFlashMessageQueue \TYPO3\CMS\Core\Messaging\FlashMessageQueue */
         $defaultFlashMessageQueue = $flashMessageService->getMessageQueueByIdentifier();
         $defaultFlashMessageQueue->enqueue($flashMessage);
@@ -204,24 +210,24 @@ class BatchResizeTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask
      * @param integer $severity
      * @return void
      */
-    public function syslog($message, $severity = \TYPO3\CMS\Core\Messaging\FlashMessage::OK)
+    public function syslog($message, $severity = FlashMessage::OK)
     {
-        $logger = GeneralUtility::makeInstance('TYPO3\CMS\Core\Log\LogManager')->getLogger(__CLASS__);
+        $logger = GeneralUtility::makeInstance(LogManager::class)->getLogger(__CLASS__);
         switch ($severity) {
-            case \TYPO3\CMS\Core\Messaging\FlashMessage::NOTICE:
-                $severity = \TYPO3\CMS\Core\Log\LogLevel::NOTICE;
+            case FlashMessage::NOTICE:
+                $severity = LogLevel::NOTICE;
                 break;
-            case \TYPO3\CMS\Core\Messaging\FlashMessage::INFO:
-                $severity = \TYPO3\CMS\Core\Log\LogLevel::INFO;
+            case FlashMessage::INFO:
+                $severity = LogLevel::INFO;
                 break;
-            case \TYPO3\CMS\Core\Messaging\FlashMessage::OK:
-                $severity = \TYPO3\CMS\Core\Log\LogLevel::INFO;
+            case FlashMessage::OK:
+                $severity = LogLevel::INFO;
                 break;
-            case \TYPO3\CMS\Core\Messaging\FlashMessage::WARNING:
-                $severity = \TYPO3\CMS\Core\Log\LogLevel::WARNING;
+            case FlashMessage::WARNING:
+                $severity = LogLevel::WARNING;
                 break;
-            case \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR:
-                $severity = \TYPO3\CMS\Core\Log\LogLevel::ERROR;
+            case FlashMessage::ERROR:
+                $severity = LogLevel::ERROR;
                 break;
         }
         $logger->log(

@@ -17,6 +17,10 @@ namespace Causal\ImageAutoresize\Utility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Core\Resource\File;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Resource\FileRepository;
+use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 
 /**
  * This is a FAL-manipulation utility.
@@ -38,7 +42,7 @@ class FAL
     /**
      * Creates/updates the index entry for a given file.
      *
-     * @param \TYPO3\CMS\Core\Resource\File $file
+     * @param File $file
      * @param string $origFileName
      * @param string $newFileName
      * @param integer $width
@@ -46,7 +50,7 @@ class FAL
      * @param array $metadata EXIF metadata
      * @return void
      */
-    public static function indexFile(\TYPO3\CMS\Core\Resource\File $file = null, $origFileName, $newFileName, $width, $height, array $metadata = [])
+    public static function indexFile(File $file = null, $origFileName, $newFileName, $width, $height, array $metadata = [])
     {
         if ($file === null) {
             $file = static::findExistingFile($origFileName);
@@ -68,7 +72,7 @@ class FAL
     {
         $file = null;
         $relativePath = substr(PathUtility::dirname($fileName), strlen(PATH_site));
-        $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
+        $resourceFactory = ResourceFactory::getInstance();
         $targetFolder = $resourceFactory->retrieveFileOrFolderObject($relativePath);
 
         $storageConfiguration = $targetFolder->getStorage()->getConfiguration();
@@ -77,7 +81,7 @@ class FAL
             $basePath = GeneralUtility::getFileAbsFileName($basePath);
             $identifier = substr($fileName, strlen($basePath) - 1);
 
-            $fileRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Resource\FileRepository::class);
+            $fileRepository = GeneralUtility::makeInstance(FileRepository::class);
             $query = $fileRepository->createQuery();
             $constraints['storage'] = $query->equals('storage', intval($targetFolder->getStorage()->getUid()));
             $constraints['storage'] = $query->equals('identifier', $identifier);
@@ -99,11 +103,11 @@ class FAL
      * @param array $metadata EXIF metadata
      * @return void
      */
-    protected static function updateIndex(\TYPO3\CMS\Core\Resource\File $file = null, $width, $height, array $metadata = [])
+    protected static function updateIndex(File $file = null, $width, $height, array $metadata = [])
     {
         if (count($metadata) > 0) {
-            /** @var \TYPO3\CMS\Core\Resource\Index\MetaDataRepository $metadataRepository */
-            $metadataRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Resource\Index\MetaDataRepository::class);
+            /** @var MetaDataRepository $metadataRepository */
+            $metadataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
             // Will take care of creating the record if it does not exist yet
             $currentMetadata = $metadataRepository->findByFile($file);
 
@@ -188,7 +192,7 @@ class FAL
     protected static function createIndex($fileName, $width, $height)
     {
         $relativePath = substr(PathUtility::dirname($fileName), strlen(PATH_site));
-        $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
+        $resourceFactory = ResourceFactory::getInstance();
         $targetFolder = $resourceFactory->retrieveFileOrFolderObject($relativePath);
         $targetFilename = PathUtility::basename($fileName);
 
@@ -209,7 +213,7 @@ class FAL
         $file = $resourceFactory->createFileObject($fileInfo);
 
         /** @var \TYPO3\CMS\Core\Resource\FileRepository $fileRepository */
-        $fileRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Resource\FileRepository::class);
+        $fileRepository = GeneralUtility::makeInstance(FileRepository::class);
         $fileRepository->addToIndex($file);
     }
 

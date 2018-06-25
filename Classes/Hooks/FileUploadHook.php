@@ -17,6 +17,8 @@ namespace Causal\ImageAutoresize\Hooks;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\DataHandling\DataHandlerProcessUploadHookInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use Causal\ImageAutoresize\Service\ImageResizer;
 
 /**
@@ -38,7 +40,8 @@ class FileUploadHook implements DataHandlerProcessUploadHookInterface
     protected static $imageResizer;
 
     /**
-     * Default constructor.
+     * FileUploadHook constructor.
+     * @throws \TYPO3\CMS\Core\Exception
      */
     public function __construct()
     {
@@ -49,7 +52,7 @@ class FileUploadHook implements DataHandlerProcessUploadHookInterface
             if (!$configuration) {
                 $this->notify(
                     $GLOBALS['LANG']->sL('LLL:EXT:image_autoresize/Resources/Private/Language/locallang.xml:message.emptyConfiguration'),
-                    \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR
+                    FlashMessage::ERROR
                 );
             }
             $configuration = unserialize($configuration);
@@ -62,9 +65,8 @@ class FileUploadHook implements DataHandlerProcessUploadHookInterface
     /**
      * Post-processes a file upload.
      *
-     * @param string $filename The uploaded file
-     * @param DataHandler $parentObject
-     * @return void
+     * @param string $filename
+     * @param DataHandler $pObj
      */
     public function processUpload_postProcessAction(&$filename, DataHandler $pObj)
     {
@@ -87,22 +89,22 @@ class FileUploadHook implements DataHandlerProcessUploadHookInterface
      *                          or \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR.
      *                          Default is \TYPO3\CMS\Core\Messaging\FlashMessage::OK.
      * @return void
-     * @internal This method is public only to be callable from a callback
+     * @throws \TYPO3\CMS\Core\Exception
      */
-    public function notify($message, $severity = \TYPO3\CMS\Core\Messaging\FlashMessage::OK)
+    public function notify($message, $severity = FlashMessage::OK)
     {
         if (TYPO3_MODE !== 'BE') {
             return;
         }
         $flashMessage = GeneralUtility::makeInstance(
-            \TYPO3\CMS\Core\Messaging\FlashMessage::class,
+            FlashMessage::class,
             $message,
             '',
             $severity,
             true
         );
-        /** @var $flashMessageService \TYPO3\CMS\Core\Messaging\FlashMessageService */
-        $flashMessageService = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
+        /** @var $flashMessageService FlashMessageService */
+        $flashMessageService = GeneralUtility::makeInstance(FlashMessageService::class);
         /** @var $defaultFlashMessageQueue \TYPO3\CMS\Core\Messaging\FlashMessageQueue */
         $defaultFlashMessageQueue = $flashMessageService->getMessageQueueByIdentifier();
         $defaultFlashMessageQueue->enqueue($flashMessage);

@@ -16,6 +16,9 @@ namespace Causal\ImageAutoresize\Utility;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Core\Resource\Index\ExtractorRegistry;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
+use Causal\ImageAutoresize\Utility\JpegExifOrient;
 
 /**
  * This is a generic image utility.
@@ -58,7 +61,7 @@ class ImageUtility
 
         if ($fullExtract && !empty($metadata)) {
             $virtualFileObject = static::getVirtualFileObject($fileName, $metadata);
-            $extractorRegistry = \TYPO3\CMS\Core\Resource\Index\ExtractorRegistry::getInstance();
+            $extractorRegistry = ExtractorRegistry::getInstance();
             $extractionServices = $extractorRegistry->getExtractorsWithDriverSupport('Local');
 
             $newMetadata = [
@@ -88,8 +91,8 @@ class ImageUtility
      */
     protected static function getVirtualFileObject($fileName, array $metadata)
     {
-        /** @var \TYPO3\CMS\Core\Resource\ResourceFactory $resourceFactory */
-        $resourceFactory = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Resource\ResourceFactory::class);
+        /** @var ResourceFactory $resourceFactory */
+        $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
 
         $recordData = [
             'uid' => 0,
@@ -327,7 +330,7 @@ class ImageUtility
      */
     public static function resetOrientation($fileName)
     {
-        \Causal\ImageAutoresize\Utility\JpegExifOrient::setOrientation($fileName, 1);
+        JpegExifOrient::setOrientation($fileName, 1);
     }
 
     /**

@@ -16,6 +16,10 @@ namespace Causal\ImageAutoresize\Slots;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Imaging\Icon;
+use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
+
 
 /**
  * Slot implementation to extend the list of actions in Extension Manager.
@@ -45,12 +49,12 @@ class ExtensionManager
 
             $extensionName = 'extensionmanager';
             $titleKey = 'extensionList.configure';
-            $title = \TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate($titleKey, $extensionName);
+            $title = LocalizationUtility::translate($titleKey, $extensionName);
 
             $icon = 'actions-system-extension-configure';
-            /** @var \TYPO3\CMS\Core\Imaging\IconFactory $iconFactory */
-            $iconFactory = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Imaging\IconFactory::class);
-            $icon = (string)$iconFactory->getIcon($icon, \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL);
+            /** @var IconFactory $iconFactory */
+            $iconFactory = GeneralUtility::makeInstance(IconFactory::class);
+            $icon = (string)$iconFactory->getIcon($icon, Icon::SIZE_SMALL);
 
             // Configure action comes as first icon
             $configureAction = sprintf('<a class="btn btn-default" title="%s" href="%s">%s</a>', htmlspecialchars($title), htmlspecialchars($moduleUrl), $icon);

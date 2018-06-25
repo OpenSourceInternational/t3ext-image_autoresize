@@ -16,10 +16,12 @@ namespace Causal\ImageAutoresize\Slots;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
-use TYPO3\CMS\Core\Resource\Driver\AbstractDriver;
-use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Resource\File;
-use TYPO3\CMS\Core\Resource\Service\FileProcessingService;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Messaging\FlashMessageService;
+use TYPO3\CMS\Core\Resource\Folder;
+use TYPO3\CMS\Core\Resource\FileInterface;
+use Causal\ImageAutoresize\Utility\FAL;
 use Causal\ImageAutoresize\Service\ImageResizer;
 
 /**
@@ -68,7 +70,7 @@ class FileUpload
             if (!$configuration) {
                 $this->notify(
                     $GLOBALS['LANG']->sL('LLL:EXT:image_autoresize/Resources/Private/Language/locallang.xml:message.emptyConfiguration'),
-                    \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR
+                    FlashMessage::ERROR
                 );
             }
             $configuration = unserialize($configuration);
@@ -82,10 +84,10 @@ class FileUpload
      * Sanitizes the file name.
      *
      * @param string $fileName
-     * @param \TYPO3\CMS\Core\Resource\Folder $folder
+     * @param Folder $folder
      * @return void|array
      */
-    public function sanitizeFileName($fileName, \TYPO3\CMS\Core\Resource\Folder $folder)
+    public function sanitizeFileName($fileName, Folder $folder)
     {
         $slotArguments = func_get_args();
         // Last parameter is the signal name itself and is not actually part of the arguments
@@ -143,11 +145,11 @@ class FileUpload
      * Auto-resizes a given source file (possibly converting it as well).
      *
      * @param string $targetFileName
-     * @param \TYPO3\CMS\Core\Resource\Folder $folder
+     * @param Folder $folder
      * @param string $sourceFile
      * @return void
      */
-    public function preFileAdd(&$targetFileName, \TYPO3\CMS\Core\Resource\Folder $folder, $sourceFile)
+    public function preFileAdd(&$targetFileName, Folder $folder, $sourceFile)
     {
         $storageConfiguration = $folder->getStorage()->getConfiguration();
         $storageRecord = $folder->getStorage()->getStorageRecord();
@@ -211,14 +213,14 @@ class FileUpload
     /**
      * Populates the FAL metadata of the resized image.
      *
-     * @param \TYPO3\CMS\Core\Resource\FileInterface $file
-     * @param \TYPO3\CMS\Core\Resource\Folder $folder
+     * @param FileInterface $file
+     * @param Folder $folder
      * @return void
      */
-    public function populateMetadata(\TYPO3\CMS\Core\Resource\FileInterface $file, \TYPO3\CMS\Core\Resource\Folder $folder)
+    public function populateMetadata(FileInterface $file, Folder $folder)
     {
         if (is_array(static::$metadata) && count(static::$metadata)) {
-            \Causal\ImageAutoresize\Utility\FAL::indexFile(
+            FAL::indexFile(
                 $file,
                 '', '',
                 static::$metadata['COMPUTED']['Width'],
@@ -238,21 +240,22 @@ class FileUpload
      *                          Default is \TYPO3\CMS\Core\Messaging\FlashMessage::OK.
      * @return void
      * @internal This method is public only to be callable from a callback
+     * @throws \TYPO3\CMS\Core\Exception
      */
-    public function notify($message, $severity = \TYPO3\CMS\Core\Messaging\FlashMessage::OK)
+    public function notify($message, $severity = FlashMessage::OK)
     {
         if (TYPO3_MODE !== 'BE') {
             return;
         }
         $flashMessage = GeneralUtility::makeInstance(
-            \TYPO3\CMS\Core\Messaging\FlashMessage::class,
+            FlashMessage::class,
             $message,
             '',
             $severity,
             true
         );
-        /** @var $flashMessageService \TYPO3\CMS\Core\Messaging\FlashMessageService */
-        $flashMessageService = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
+        /** @var $flashMessageService FlashMessageService */
+        $flashMessageService = GeneralUtility::makeInstance(FlashMessageService::class);
         /** @var $defaultFlashMessageQueue \TYPO3\CMS\Core\Messaging\FlashMessageQueue */
         $defaultFlashMessageQueue = $flashMessageService->getMessageQueueByIdentifier();
         $defaultFlashMessageQueue->enqueue($flashMessage);

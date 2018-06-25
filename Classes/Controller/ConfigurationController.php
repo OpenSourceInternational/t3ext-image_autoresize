@@ -20,7 +20,20 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
-
+use TYPO3\CMS\Backend\Template\ModuleTemplate;
+use TYPO3\CMS\Backend\Form\FormResultCompiler;
+use TYPO3\CMS\Backend\Form\FormDataProvider\DatabaseEditRow;
+use TYPO3\CMS\Backend\Form\FormDataGroup\TcaDatabaseRecord;
+use TYPO3\CMS\Backend\Form\FormDataCompiler;
+use TYPO3\CMS\Backend\Template\Components\ButtonBar;
+use TYPO3\CMS\Core\Imaging\Icon;
+use TYPO3\CMS\Core\Utility\HttpUtility;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
+use TYPO3\CMS\Core\Configuration\ConfigurationManager;
+use TYPO3\CMS\Backend\Form\NodeFactory;
+use TYPO3\CMS\Backend\Form\FormEngine;
+use TYPO3\CMS\Core\DataHandling\DataHandler as BaseDataHandler;
+use Causal\ImageAutoresize\Backend\Form\FormDataProvider\VirtualDatabaseEditRow;
 /**
  * Configuration controller.
  *
@@ -82,7 +95,7 @@ class ConfigurationController
      */
     public function __construct()
     {
-        $this->moduleTemplate = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Template\ModuleTemplate::class);
+        $this->moduleTemplate = GeneralUtility::makeInstance(ModuleTemplate::class);
         $this->languageService = $GLOBALS['LANG'];
 
         $config =  $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS'][$this->expertKey];
@@ -155,10 +168,11 @@ class ConfigurationController
      *
      * @param array $row
      * @return void
+     * @throws \TYPO3\CMS\Backend\Form\Exception
      */
     protected function moduleContent(array $row)
     {
-        $this->formResultCompiler = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Form\FormResultCompiler::class);
+        $this->formResultCompiler = GeneralUtility::makeInstance(FormResultCompiler::class);
 
         $wizard = $this->buildForm($row);
         $wizard .= $this->formResultCompiler->printNeededJSFunctions();
@@ -171,6 +185,7 @@ class ConfigurationController
      *
      * @param array $row
      * @return string
+     * @throws \TYPO3\CMS\Backend\Form\Exception
      */
     protected function buildForm(array $row)
     {
@@ -187,28 +202,28 @@ class ConfigurationController
         $isRecentV7OrV8 = version_compare(TYPO3_version, '8.6.1', '>')
             || (version_compare(TYPO3_version, '7.6.17', '>=') && version_compare(TYPO3_version, '8.0', '<'));
         if ($isRecentV7OrV8) {
-            $dataProviders[\Causal\ImageAutoresize\Backend\Form\FormDataProvider\VirtualDatabaseEditRow::class] = [
+            $dataProviders[VirtualDatabaseEditRow::class] = [
                 'before' => [
-                    \TYPO3\CMS\Backend\Form\FormDataProvider\DatabaseEditRow::class,
+                    DatabaseEditRow::class,
                 ]
             ];
         } else {
             // Either TYPO3 < 7.6.17 or TYPO3 8.0.0 - 8.6.1
-            $originalProvider = \TYPO3\CMS\Backend\Form\FormDataProvider\DatabaseEditRow::class;
+            $originalProvider = DatabaseEditRow::class;
             $databaseEditRowProvider = $dataProviders[$originalProvider];
             unset($dataProviders[$originalProvider]);
-            $dataProviders[\Causal\ImageAutoresize\Backend\Form\FormDataProvider\VirtualDatabaseEditRow::class] = $databaseEditRowProvider;
+            $dataProviders[VirtualDatabaseEditRow::class] = $databaseEditRowProvider;
         }
 
         // Initialize record in our virtual provider
-        \Causal\ImageAutoresize\Backend\Form\FormDataProvider\VirtualDatabaseEditRow::initialize($record);
+        VirtualDatabaseEditRow::initialize($record);
 
-        /** @var \TYPO3\CMS\Backend\Form\FormDataGroup\TcaDatabaseRecord $formDataGroup */
-        $formDataGroup = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Form\FormDataGroup\TcaDatabaseRecord::class);
-        /** @var \TYPO3\CMS\Backend\Form\FormDataCompiler $formDataCompiler */
-        $formDataCompiler = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Form\FormDataCompiler::class, $formDataGroup);
-        /** @var \TYPO3\CMS\Backend\Form\NodeFactory $nodeFactory */
-        $nodeFactory = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Form\NodeFactory::class);
+        /** @var TcaDatabaseRecord $formDataGroup */
+        $formDataGroup = GeneralUtility::makeInstance(TcaDatabaseRecord::class);
+        /** @var FormDataCompiler $formDataCompiler */
+        $formDataCompiler = GeneralUtility::makeInstance(FormDataCompiler::class, $formDataGroup);
+        /** @var NodeFactory $nodeFactory */
+        $nodeFactory = GeneralUtility::makeInstance(NodeFactory::class);
 
         $formDataCompilerInput = [
             'tableName' => static::virtualTable,
@@ -283,7 +298,7 @@ HTML;
             ->setValue('1')
             ->setIcon($this->moduleTemplate->getIconFactory()->getIcon(
                 'actions-document-save',
-                \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL
+                Icon::SIZE_SMALL
             ));
         $saveSplitButton->addItem($saveButton, true);
 
@@ -295,11 +310,11 @@ HTML;
             ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.saveCloseDoc'))
             ->setIcon($this->moduleTemplate->getIconFactory()->getIcon(
                 'actions-document-save-close',
-                \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL
+                Icon::SIZE_SMALL
             ));
         $saveSplitButton->addItem($saveAndCloseButton);
 
-        $buttonBar->addButton($saveSplitButton, \TYPO3\CMS\Backend\Template\Components\ButtonBar::BUTTON_POSITION_LEFT, 2);
+        $buttonBar->addButton($saveSplitButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
         // CLOSE button:
         $closeButton = $buttonBar->makeLinkButton()
@@ -308,7 +323,7 @@ HTML;
             ->setTitle($this->languageService->sL('LLL:EXT:lang/Resources/Private/Language/locallang_core.xlf:rm.closeDoc'))
             ->setIcon($this->moduleTemplate->getIconFactory()->getIcon(
                 'actions-view-go-back',
-                \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL
+                Icon::SIZE_SMALL
             ));
         $buttonBar->addButton($closeButton);
     }
@@ -403,7 +418,7 @@ HTML;
 
         if ($close || $saveAndClose) {
             $closeUrl = BackendUtility::getModuleUrl('tools_ExtensionmanagerExtensionmanager');
-            \TYPO3\CMS\Core\Utility\HttpUtility::redirect($closeUrl);
+            HttpUtility::redirect($closeUrl);
         }
     }
 
@@ -418,10 +433,10 @@ HTML;
      */
     protected function writeToLocalconf($key, array $config)
     {
-        /** @var $objectManager \TYPO3\CMS\Extbase\Object\ObjectManager */
-        $objectManager = GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\Object\ObjectManager::class);
-        /** @var $configurationManager \TYPO3\CMS\Core\Configuration\ConfigurationManager */
-        $configurationManager = $objectManager->get(\TYPO3\CMS\Core\Configuration\ConfigurationManager::class);
+        /** @var $objectManager ObjectManager */
+        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+        /** @var $configurationManager ConfigurationManager */
+        $configurationManager = $objectManager->get(ConfigurationManager::class);
         return $configurationManager->setLocalConfigurationValueByPath('EXT/extConf/' . $key, serialize($config));
     }
 
@@ -432,7 +447,7 @@ HTML;
      */
     protected function initTCEForms()
     {
-        $this->tceforms = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Form\FormEngine::class);
+        $this->tceforms = GeneralUtility::makeInstance(FormEngine::class);
         $this->tceforms->doSaveFieldName = 'doSave';
         $this->tceforms->palettesCollapsed = 0;
     }
@@ -489,7 +504,7 @@ HTML;
             return;
         }
 
-        $resourcesPath = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath($this->extKey) . 'Resources/Public/';
+        $resourcesPath = ExtensionManagementUtility::extPath($this->extKey) . 'Resources/Public/';
         $pageRenderer = $this->moduleTemplate->getPageRenderer();
         $pageRenderer->addCssFile($resourcesPath . 'Css/twitter.css');
         $pageRenderer->addJsFile($resourcesPath . 'JavaScript/popup.js');
@@ -534,7 +549,7 @@ HTML;
 
 // ReflectionMethod does not work properly with arguments passed as reference thus
 // using a trick here
-class CustomDataHandler extends \TYPO3\CMS\Core\DataHandling\DataHandler
+class CustomDataHandler extends BaseDataHandler
 {
 
     /**

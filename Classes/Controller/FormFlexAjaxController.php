@@ -17,8 +17,12 @@ namespace Causal\ImageAutoresize\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Backend\Form\FormDataProvider\DatabaseEditRow;
+use TYPO3\CMS\Backend\Controller\FormFlexAjaxController as BaseFormFlexAjaxController;
+use Causal\ImageAutoresize\Backend\Form\FormDataProvider\VirtualDatabaseEditRow;
+use Causal\ImageAutoresize\Controller\ConfigurationController;
 
-class FormFlexAjaxController extends \TYPO3\CMS\Backend\Controller\FormFlexAjaxController
+class FormFlexAjaxController extends BaseFormFlexAjaxController
 {
 
     /**
@@ -35,19 +39,19 @@ class FormFlexAjaxController extends \TYPO3\CMS\Backend\Controller\FormFlexAjaxC
 
         // Trick to use a virtual record
         $dataProviders =& $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['formDataGroup']['tcaDatabaseRecord'];
-        $dataProviders[\Causal\ImageAutoresize\Backend\Form\FormDataProvider\VirtualDatabaseEditRow::class] = [
+        $dataProviders[VirtualDatabaseEditRow::class] = [
             'before' => [
-                \TYPO3\CMS\Backend\Form\FormDataProvider\DatabaseEditRow::class,
+                DatabaseEditRow::class,
             ]
         ];
 
         $record = [
-            'uid' => \Causal\ImageAutoresize\Controller\ConfigurationController::virtualRecordId,
+            'uid' => ConfigurationController::virtualRecordId,
             'pid' => 0,
         ];
 
         // Initialize record in our virtual provider
-        \Causal\ImageAutoresize\Backend\Form\FormDataProvider\VirtualDatabaseEditRow::initialize($record);
+        VirtualDatabaseEditRow::initialize($record);
 
         $response = parent::containerAdd($request, $response);
         return $response->withHeader('Content-Type', 'application/json; charset=utf-8');

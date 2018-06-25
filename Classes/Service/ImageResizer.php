@@ -16,6 +16,12 @@ namespace Causal\ImageAutoresize\Service;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Extbase\SignalSlot\Dispatcher;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Resource\File;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Utility\File\BasicFileUtility;
+use TYPO3\CMS\Frontend\Imaging\GifBuilder;
 use Causal\ImageAutoresize\Utility\ImageUtility;
 
 /**
@@ -50,7 +56,7 @@ class ImageResizer
      */
     public function __construct()
     {
-        $this->signalSlotDispatcher = GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\SignalSlot\Dispatcher::class);
+        $this->signalSlotDispatcher = GeneralUtility::makeInstance(Dispatcher::class);
     }
 
     /**
@@ -104,11 +110,11 @@ class ImageResizer
      * Returns the resized/converted file name (no actual processing).
      *
      * @param string $fileName
-     * @param \TYPO3\CMS\Core\Authentication\BackendUserAuthentication|null $backendUser
+     * @param BackendUserAuthentication|null $backendUser
      * @param array $ruleset The optional ruleset to use
      * @return string|null Eiter null if no resize/conversion should take place or the resized/converted file name
      */
-    public function getProcessedFileName($fileName, \TYPO3\CMS\Core\Authentication\BackendUserAuthentication $backendUser = null, array $ruleset = null)
+    public function getProcessedFileName($fileName, BackendUserAuthentication $backendUser = null, array $ruleset = null)
     {
         if ($ruleset === null) {
             $ruleset = $this->getRuleset($fileName, $fileName, $backendUser);
@@ -160,12 +166,14 @@ class ImageResizer
      * @param string $fileName Full path to the file to be processed
      * @param string $targetFileName Expected target file name, if not converted (only file name, no path)
      * @param string $targetDirectory
-     * @param \TYPO3\CMS\Core\Resource\File $file
-     * @param \TYPO3\CMS\Core\Authentication\BackendUserAuthentication $backendUser
+     * @param File $file
+     * @param BackendUserAuthentication $backendUser
      * @param callback $callbackNotification Callback to send notification
      * @return string File name that was finally written
+     * @throws \TYPO3\CMS\Extbase\SignalSlot\Exception\InvalidSlotException
+     * @throws \TYPO3\CMS\Extbase\SignalSlot\Exception\InvalidSlotReturnException
      */
-    public function processFile($fileName, $targetFileName = '', $targetDirectory = '', \TYPO3\CMS\Core\Resource\File $file = null, \TYPO3\CMS\Core\Authentication\BackendUserAuthentication $backendUser = null, $callbackNotification = null)
+    public function processFile($fileName, $targetFileName = '', $targetDirectory = '', File $file = null, BackendUserAuthentication $backendUser = null, $callbackNotification = null)
     {
         $this->lastMetadata = null;
 
@@ -199,7 +207,7 @@ class ImageResizer
                     $this->localize('LLL:EXT:image_autoresize/Resources/Private/Language/locallang.xlf:message.imageTransparent'),
                     $targetFileName
                 );
-                $this->notify($callbackNotification, $message, \TYPO3\CMS\Core\Messaging\FlashMessage::WARNING);
+                $this->notify($callbackNotification, $message, FlashMessage::WARNING);
                 return $fileName;
             }
         }
@@ -208,7 +216,7 @@ class ImageResizer
                 $this->localize('LLL:EXT:image_autoresize/Resources/Private/Language/locallang.xlf:message.imageAnimated'),
                 $targetFileName
             );
-            $this->notify($callbackNotification, $message, \TYPO3\CMS\Core\Messaging\FlashMessage::WARNING);
+            $this->notify($callbackNotification, $message, FlashMessage::WARNING);
             return $fileName;
         }
 
@@ -223,7 +231,7 @@ class ImageResizer
                 $this->localize('LLL:EXT:image_autoresize/Resources/Private/Language/locallang.xlf:message.imageNotWritable'),
                 $targetFileName
             );
-            $this->notify($callbackNotification, $message, \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
+            $this->notify($callbackNotification, $message, FlashMessage::ERROR);
             return $fileName;
         }
 
@@ -236,8 +244,8 @@ class ImageResizer
 
             if (empty($targetDirectory)) {
                 // Ensures $destFileName does not yet exist, otherwise make it unique!
-                /* @var $fileFunc \TYPO3\CMS\Core\Utility\File\BasicFileUtility */
-                $fileFunc = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Utility\File\BasicFileUtility::class);
+                /* @var $fileFunc BasicFileUtility */
+                $fileFunc = GeneralUtility::makeInstance(BasicFileUtility::class);
                 $destFileName = $fileFunc->getUniqueName($destFileName, $destDirectory);
                 $targetDestFileName = $destFileName;
             } else {
@@ -251,8 +259,8 @@ class ImageResizer
         }
 
         // Image is bigger than allowed, will now resize it to (hopefully) make it lighter
-        /** @var $gifCreator \TYPO3\CMS\Frontend\Imaging\GifBuilder */
-        $gifCreator = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Imaging\GifBuilder::class);
+        /** @var $gifCreator GifBuilder */
+        $gifCreator = GeneralUtility::makeInstance(GifBuilder::class);
         $gifCreator->init();
         $gifCreator->absPrefix = PATH_site;
 
@@ -334,7 +342,7 @@ class ImageResizer
                 ImageUtility::resetOrientation($destFileName);
             }
 
-            $this->notify($callbackNotification, $message, \TYPO3\CMS\Core\Messaging\FlashMessage::INFO);
+            $this->notify($callbackNotification, $message, FlashMessage::INFO);
         } else {
             // Destination file was not written
             $destFileName = $fileName;
@@ -389,10 +397,10 @@ class ImageResizer
      *
      * @param string $sourceFileName
      * @param string $targetFileName
-     * @param \TYPO3\CMS\Core\Authentication\BackendUserAuthentication $backendUser
+     * @param BackendUserAuthentication $backendUser
      * @return array
      */
-    protected function getRuleset($sourceFileName, $targetFileName, \TYPO3\CMS\Core\Authentication\BackendUserAuthentication $backendUser = null)
+    protected function getRuleset($sourceFileName, $targetFileName, BackendUserAuthentication $backendUser = null)
     {
         $ret = [];
 

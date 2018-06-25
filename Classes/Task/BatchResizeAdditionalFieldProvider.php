@@ -15,6 +15,10 @@
 namespace Causal\ImageAutoresize\Task;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Scheduler\Controller\SchedulerModuleController;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Scheduler\Task\AbstractTask;
+use TYPO3\CMS\Scheduler\AdditionalFieldProviderInterface as BaseAdditionalFieldProviderInterface;
 
 /**
  * Additional BE fields for batch resize task.
@@ -27,7 +31,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * @author      Xavier Perseguers <xavier@causal.ch>
  * @license     http://www.gnu.org/copyleft/gpl.html
  */
-class BatchResizeAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\AdditionalFieldProviderInterface
+class BatchResizeAdditionalFieldProvider implements BaseAdditionalFieldProviderInterface
 {
 
     /**
@@ -49,10 +53,10 @@ class BatchResizeAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Additio
      *
      * @param array $taskInfo Reference to the array containing the info used in the add/edit form
      * @param object $task When editing, reference to the current task object. Null when adding.
-     * @param \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $parentObject Reference to the calling object (Scheduler's BE module)
+     * @param SchedulerModuleController $parentObject Reference to the calling object (Scheduler's BE module)
      * @return array Array containing all the information pertaining to the additional fields
      */
-    public function getAdditionalFields(array &$taskInfo, $task, \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $parentObject)
+    public function getAdditionalFields(array &$taskInfo, $task, SchedulerModuleController $parentObject)
     {
         // Initialize selected fields
         if (!isset($taskInfo['scheduler_batchResize_directories'])) {
@@ -100,10 +104,10 @@ class BatchResizeAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Additio
      * Checks if the given value is a string
      *
      * @param array $submittedData Reference to the array containing the data submitted by the user
-     * @param \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $parentObject Reference to the calling object (Scheduler's BE module)
+     * @param SchedulerModuleController $parentObject Reference to the calling object (Scheduler's BE module)
      * @return boolean true if validation was ok (or selected class is not relevant), false otherwise
      */
-    public function validateAdditionalFields(array &$submittedData, \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $parentObject)
+    public function validateAdditionalFields(array &$submittedData, SchedulerModuleController $parentObject)
     {
         $result = true;
 
@@ -118,7 +122,7 @@ class BatchResizeAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Additio
                         $GLOBALS['LANG']->sL('LLL:EXT:image_autoresize/Resources/Private/Language/locallang_mod.xlf:msg.invalidDirectories'),
                         $directory
                     ),
-                    \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR
+                    FlashMessage::ERROR
                 );
             }
         }
@@ -133,7 +137,7 @@ class BatchResizeAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Additio
                         $GLOBALS['LANG']->sL('LLL:EXT:image_autoresize/Resources/Private/Language/locallang_mod.xlf:msg.invalidExcludeDirectories'),
                         $directory
                     ),
-                    \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
+                    FlashMessage::ERROR);
             }
         }
 
@@ -144,12 +148,12 @@ class BatchResizeAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Additio
      * Saves given string value in task object
      *
      * @param array $submittedData Contains data submitted by the user
-     * @param \Causal\ImageAutoresize\Task\BatchResizeTask $task Reference to the current task object
+     * @paramAbstractTask $task Reference to the current task object
      * @return void
      */
-    public function saveAdditionalFields(array $submittedData, \TYPO3\CMS\Scheduler\Task\AbstractTask $task)
+    public function saveAdditionalFields(array $submittedData, AbstractTask $task)
     {
-        /** @var $task \Causal\ImageAutoresize\Task\BatchResizeTask */
+        /** @var $task AbstractTask */
         $task->directories = trim($submittedData['scheduler_batchResize_directories']);
         $task->excludeDirectories = trim($submittedData['scheduler_batchResize_excludeDirectories']);
     }
