@@ -110,6 +110,7 @@ class ConfigurationController
      * @param ServerRequestInterface $request the current request
      * @param ResponseInterface $response
      * @return ResponseInterface the response with the content
+     * @throws \TYPO3\CMS\Backend\Form\Exception
      */
     public function mainAction(ServerRequestInterface $request, ResponseInterface $response)
     {
