@@ -34,6 +34,7 @@ use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Form\FormEngine;
 use TYPO3\CMS\Core\DataHandling\DataHandler as BaseDataHandler;
 use Causal\ImageAutoresize\Backend\Form\FormDataProvider\VirtualDatabaseEditRow;
+use Causal\ImageAutoresize\Service\ConfigurationService;
 /**
  * Configuration controller.
  *
@@ -98,8 +99,7 @@ class ConfigurationController
         $this->moduleTemplate = GeneralUtility::makeInstance(ModuleTemplate::class);
         $this->languageService = $GLOBALS['LANG'];
 
-        $config =  $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS'][$this->expertKey];
-        $this->config = $config ? unserialize($config) : $this->getDefaultConfiguration();
+        $this->config = ConfigurationService::getCurrentExtConfiguration();
         $this->config['conversion_mapping'] = implode(LF, explode(',', $this->config['conversion_mapping']));
     }
 
@@ -339,30 +339,6 @@ HTML;
         echo $this->content;
     }
 
-    /**
-     * Returns the default configuration.
-     *
-     * @return array
-     */
-    protected function getDefaultConfiguration()
-    {
-        return [
-            'directories' => 'fileadmin/,uploads/',
-            'file_types' => 'jpg,jpeg,png',
-            'threshold' => '400K',
-            'max_width' => '1024',
-            'max_height' => '768',
-            'auto_orient' => '1',
-            'conversion_mapping' => implode(',', [
-                'ai => jpg',
-                'bmp => jpg',
-                'pcx => jpg',
-                'tga => jpg',
-                'tif => jpg',
-                'tiff => jpg',
-            ]),
-        ];
-    }
 
     /**
      * Processes submitted data and stores it to localconf.php.

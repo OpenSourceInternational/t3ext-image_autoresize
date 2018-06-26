@@ -20,6 +20,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use Causal\ImageAutoresize\Service\ImageResizer;
+use Causal\ImageAutoresize\Service\ConfigurationService;
 
 /**
  * This class extends \TYPO3\CMS\Core\DataHandling\DataHandler and hooks into the
@@ -48,33 +49,7 @@ class FileUploadHook implements DataHandlerProcessUploadHookInterface
         if (static::$imageResizer === null) {
             static::$imageResizer = GeneralUtility::makeInstance(ImageResizer::class);
 
-            $configuration = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['image_autoresize_ff'];
-            if (!$configuration) {
-                $configuration = [
-                    'directories' => 'fileadmin/,uploads/',
-                    'file_types' => 'jpg,jpeg,png',
-                    'threshold' => '400K',
-                    'max_width' => '1024',
-                    'max_height' => '768',
-                    'auto_orient' => '1',
-                    'keep_metadata' => 0,
-                    'resize_png_with_alpha' => 0,
-                    'conversion_mapping' => implode(',', [
-                        'ai => jpg',
-                        'bmp => jpg',
-                        'pcx => jpg',
-                        'tga => jpg',
-                        'tif => jpg',
-                        'tiff => jpg',
-                    ]),
-                ];
-                $this->notify(
-                    $GLOBALS['LANG']->sL('LLL:EXT:image_autoresize/Resources/Private/Language/locallang.xml:message.emptyConfigurationDefault'),
-                    FlashMessage::INFO
-                );
-            } else {
-                $configuration = unserialize($configuration);
-            }
+            $configuration = ConfigurationService::getCurrentExtConfiguration();
             if (is_array($configuration)) {
                 static::$imageResizer->initializeRulesets($configuration);
             }
