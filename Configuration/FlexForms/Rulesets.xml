@@ -42,6 +42,7 @@
 									<label>LLL:EXT:lang/locallang_tca.xml:be_users.usergroup</label>
 									<config type="array">
 										<type>select</type>
+										<renderType>selectMultipleSideBySide</renderType>
 										<foreign_table>be_groups</foreign_table>
 										<foreign_table_where>ORDER BY be_groups.title</foreign_table_where>
 										<size>5</size>
@@ -126,6 +127,7 @@
 									<label>LLL:EXT:image_autoresize/Resources/Private/Language/locallang_tca.xlf:tx_imageautoresize.keep_metadata</label>
 									<config>
 										<type>select</type>
+										<renderType>selectSingle</renderType>
 										<items>
 											<numIndex index="0">
 												<numIndex index="0">LLL:EXT:image_autoresize/Resources/Private/Language/locallang_tca.xlf:tx_imageautoresize.keep_metadata.inherit</numIndex>
