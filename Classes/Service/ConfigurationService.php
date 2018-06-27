@@ -25,7 +25,7 @@ class ConfigurationService
         /** @var $configurationManager ConfigurationManager */
         $configurationManager = $objectManager->get(ConfigurationManager::class);
         try {
-            $configurationArray = unserialize($configurationManager->getLocalConfigurationValueByPath('EXTENSIONS/' . 'image_autoresize_ff'));
+            $configurationArray = $configurationManager->getLocalConfigurationValueByPath('EXTENSIONS/' . 'image_autoresize_ff');
         } catch (\Exception $exception) {
             $configurationArray =  [
                 'directories' => 'fileadmin/,uploads/',

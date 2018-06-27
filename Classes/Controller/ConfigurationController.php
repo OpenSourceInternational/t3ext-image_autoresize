@@ -414,7 +414,7 @@ HTML;
         $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
         /** @var $configurationManager ConfigurationManager */
         $configurationManager = $objectManager->get(ConfigurationManager::class);
-        return $configurationManager->setLocalConfigurationValueByPath('EXTENSIONS/' . $key, serialize($config));
+        return $configurationManager->setLocalConfigurationValueByPath('EXTENSIONS/' . $key, $config);
     }
 
     /**
