@@ -59,9 +59,6 @@ class BatchResizeTask extends AbstractTask
     public function execute()
     {
         $configuration = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['image_autoresize_ff'];
-        if (!empty($configuration)) {
-            $configuration = unserialize($configuration);
-        }
         if (!is_array($configuration)) {
             throw new \RuntimeException('No configuration found', 1384103174);
         }
