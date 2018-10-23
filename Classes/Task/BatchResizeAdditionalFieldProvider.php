@@ -18,7 +18,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Scheduler\Controller\SchedulerModuleController;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Scheduler\Task\AbstractTask;
-use TYPO3\CMS\Scheduler\AdditionalFieldProviderInterface as BaseAdditionalFieldProviderInterface;
+use TYPO3\CMS\Scheduler\AbstractAdditionalFieldProvider;
 
 /**
  * Additional BE fields for batch resize task.
@@ -31,7 +31,7 @@ use TYPO3\CMS\Scheduler\AdditionalFieldProviderInterface as BaseAdditionalFieldP
  * @author      Xavier Perseguers <xavier@causal.ch>
  * @license     http://www.gnu.org/copyleft/gpl.html
  */
-class BatchResizeAdditionalFieldProvider implements BaseAdditionalFieldProviderInterface
+class BatchResizeAdditionalFieldProvider extends AbstractAdditionalFieldProvider
 {
 
     /**
@@ -61,14 +61,14 @@ class BatchResizeAdditionalFieldProvider implements BaseAdditionalFieldProviderI
         // Initialize selected fields
         if (!isset($taskInfo['scheduler_batchResize_directories'])) {
             $taskInfo['scheduler_batchResize_directories'] = $this->defaultDirectories;
-            if ($parentObject->CMD === 'edit') {
+            if ($parentObject->getCurrentAction() === 'edit') {
                 /** @var $task \Causal\ImageAutoresize\Task\BatchResizeTask */
                 $taskInfo['scheduler_batchResize_directories'] = $task->directories;
             }
         }
         if (!isset($taskInfo['scheduler_batchResize_excludeDirectories'])) {
             $taskInfo['scheduler_batchResize_excludeDirectories'] = $this->defaultExcludeDirectories;
-            if ($parentObject->CMD === 'edit') {
+            if ($parentObject->getCurrentAction() === 'edit') {
                 /** @var $task \Causal\ImageAutoresize\Task\BatchResizeTask */
                 $taskInfo['scheduler_batchResize_excludeDirectories'] = $task->excludeDirectories;
             }
@@ -117,7 +117,7 @@ class BatchResizeAdditionalFieldProvider implements BaseAdditionalFieldProviderI
             $absoluteDirectory = GeneralUtility::getFileAbsFileName($directory);
             if (!@is_dir($absoluteDirectory)) {
                 $result = false;
-                $parentObject->addMessage(
+                $this->addMessage(
                     sprintf(
                         $GLOBALS['LANG']->sL('LLL:EXT:image_autoresize/Resources/Private/Language/locallang_mod.xlf:msg.invalidDirectories'),
                         $directory
@@ -132,7 +132,7 @@ class BatchResizeAdditionalFieldProvider implements BaseAdditionalFieldProviderI
             $absoluteDirectory = GeneralUtility::getFileAbsFileName($directory);
             if (!@is_dir($absoluteDirectory)) {
                 $result = false;
-                $parentObject->addMessage(
+                $this->addMessage(
                     sprintf(
                         $GLOBALS['LANG']->sL('LLL:EXT:image_autoresize/Resources/Private/Language/locallang_mod.xlf:msg.invalidExcludeDirectories'),
                         $directory
