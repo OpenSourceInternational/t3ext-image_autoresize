@@ -33,6 +33,7 @@ use TYPO3\CMS\Core\Configuration\ConfigurationManager;
 use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Form\FormEngine;
 use TYPO3\CMS\Core\DataHandling\DataHandler as BaseDataHandler;
+use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use Causal\ImageAutoresize\Backend\Form\FormDataProvider\VirtualDatabaseEditRow;
 use Causal\ImageAutoresize\Service\ConfigurationService;
 /**
@@ -270,7 +271,8 @@ class ConfigurationController
 			<input type="hidden" name="_serialNumber" value="' . md5(microtime()) . '" />
 			<input type="hidden" name="_scrollPosition" value="" />';
 
-            $overriddenAjaxUrl = GeneralUtility::quoteJSvalue(BackendUtility::getModuleUrl('TxImageAutoresize::record_flex_container_add'));
+            $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
+            $overriddenAjaxUrl = GeneralUtility::quoteJSvalue($uriBuilder->buildUriFromRoute('TxImageAutoresize::record_flex_container_add'));
             $formContent .= <<<HTML
 <script type="text/javascript">
     TYPO3.settings.ajaxUrls['record_flex_container_add'] = $overriddenAjaxUrl;
@@ -394,7 +396,8 @@ HTML;
         }
 
         if ($close || $saveAndClose) {
-            $closeUrl = BackendUtility::getModuleUrl('tools_ExtensionmanagerExtensionmanager');
+            $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
+            $closeUrl = $uriBuilder->buildUriFromRoute('tools_ExtensionmanagerExtensionmanager');
             HttpUtility::redirect($closeUrl);
         }
     }

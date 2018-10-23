@@ -19,6 +19,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
+use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 
 
 /**
@@ -45,7 +46,8 @@ class ExtensionManager
     public function processActions(array $extension, array &$actions)
     {
         if ($extension['key'] === 'image_autoresize') {
-            $moduleUrl = BackendUtility::getModuleUrl('xMOD_tximageautoresize');
+            $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
+            $moduleUrl = $uriBuilder->buildUriFromRoute('xMOD_tximageautoresize');
 
             $extensionName = 'extensionmanager';
             $titleKey = 'extensionList.configure';
