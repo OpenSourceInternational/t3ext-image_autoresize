@@ -33,7 +33,7 @@ use TYPO3\CMS\Core\Configuration\ConfigurationManager;
 use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Form\FormEngine;
 use TYPO3\CMS\Core\DataHandling\DataHandler as BaseDataHandler;
-use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use Causal\ImageAutoresize\Backend\Form\FormDataProvider\VirtualDatabaseEditRow;
 use Causal\ImageAutoresize\Service\ConfigurationService;
 /**
